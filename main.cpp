@@ -19,7 +19,7 @@ std::array<double, 6> jakobianFunct(const std::array<double, 6> &Coordpoint, con
     functArray[6] = sqrt(pow(Coordpoint[0] - f.x,2) + pow(Coordpoint[1] - f.y,2)) - sqrt(pow(Coordpoint[2] - f.x,2) + pow(Coordpoint[3] - f.y,2)) - delay.AFB;
     functArray[7] = sqrt(pow(Coordpoint[0] - f.x,2) + pow(Coordpoint[1] - f.y,2)) - sqrt(pow(Coordpoint[4] - f.x,2) + pow(Coordpoint[5] - f.y,2)) - delay.AFC;
     functArray[8] = sqrt(pow(Coordpoint[2] - f.x,2) + pow(Coordpoint[3] - f.y,2)) - sqrt(pow(Coordpoint[4] - f.x,2) + pow(Coordpoint[5] - f.y,2)) - delay.BFC;
-    // Подсчитаем Якобиан функции F суммы квадратов functArray
+    // Подсчитаем якобиан функции F суммы квадратов functArray
     std::array<double, 6> jakobianF;
     jakobianF[0] = 4*((functArray[0] + functArray[1])*(Coordpoint[0] - d.x)/sqrt(pow(Coordpoint[0] - d.x,2) + pow(Coordpoint[1] - d.y,2)) +
                       (functArray[3] + functArray[4])*(Coordpoint[0] - e.x)/sqrt(pow(Coordpoint[0] - e.x,2) + pow(Coordpoint[1] - e.y,2)) +
@@ -42,11 +42,44 @@ std::array<double, 6> jakobianFunct(const std::array<double, 6> &Coordpoint, con
                        (functArray[4] + functArray[5])*(Coordpoint[5] - e.y)/sqrt(pow(Coordpoint[4] - e.x,2) + pow(Coordpoint[5] - e.y,2)) +
                        (functArray[7] + functArray[8])*(Coordpoint[5] - f.y)/sqrt(pow(Coordpoint[4] - f.x,2) + pow(Coordpoint[5] - f.y,2)));
 
-    return jakobianF;
-    // ax, ay, bx, by, cx, cy
+    //нормируем якобиан
+    double normJac = sqrt(pow(jakobianF[0], 2) + pow(jakobianF[1], 2) + pow(jakobianF[2], 2) + pow(jakobianF[3], 2) + pow(jakobianF[4], 2) + pow(jakobianF[5], 2));
+    jakobianF[0] = jakobianF[0] / normJac;
+    jakobianF[1] = jakobianF[1] / normJac;
+    jakobianF[2] = jakobianF[2] / normJac;
+    jakobianF[3] = jakobianF[3] / normJac;
+    jakobianF[4] = jakobianF[4] / normJac;
+    jakobianF[5] = jakobianF[5] / normJac;
+	
+	return jakobianF;
 }
 
+std::array<double, 6> const_array_multi(const double &LR, const std::array<double, 6> &Jk)
+{
+    // функция почленного умножения вектора на константу
+    std::array<double, 6> lrngRt_JkbnFnct;
+    for (int index = 0; index < Jk.size(); ++index)
+        lrngRt_JkbnFnct[index] = LR * Jk[index];
+    return lrngRt_JkbnFnct;
+}
 
+std::array<double, 6> arraySubtraction(const std::array<double, 6> &a, const std::array<double, 6> &b)
+{
+    // функция вычисления разности векторов
+    std::array<double, 6> c;
+    for(int index = 0; index < a.size(); ++index)
+        c[index] = a[index] - b[index];
+    return c;
+}
+
+double arrayMod(const std::array<double, 6> &a)
+{
+    // Вычисляем модуль вектора
+    double mod = 0.0;
+    for(int index = 0; index < a.size(); ++index)
+        mod += pow(a[index],2);
+    return sqrt(mod);
+}
 
 int main()
 {
@@ -92,11 +125,26 @@ int main()
         currentX = newX; //Обновляем значение х
     }
     std::cout << "Final: " << currentX << std::endl;
-    /*
-    std::array<double, 6> startPoint{0, 0, 0, 0, 0, 0}; // ax, ay, bx, by, cx, cy
-    std::array<double, 6> jacob_iteration;
-    jacob_iteration = jakobianFunct(startPoint, D, E, F, delays);
 
+// Проверки работы функций
+    /*
+    std::array<double, 6> exVec{1, 1, 1, 1, 1, 1};
+    double exDouble = 2;
+    std::array<double, 6> resultVec;
+    std::array<double, 6> resultVec2;
+    resultVec = const_array_multi(exDouble, exVec);
+    std::array<double, 6> exVec2{20, 20, 20, 20, 20, 20};
+    resultVec2 = arraySubtraction(exVec2, resultVec);
+    std::cout << "resultVec: " << resultVec[0] << " " << resultVec[1] << " " <<
+                                           resultVec[2] << " " << resultVec[3] << " " <<
+                                           resultVec[4] << " " << resultVec[5] << std::endl;
+    std::cout << "resultVec2: " << resultVec2[0] << " " << resultVec2[1] << " " <<
+        resultVec2[2] << " " << resultVec2[3] << " " <<
+        resultVec2[4] << " " << resultVec2[5] << std::endl;
+    std::cout << "mod(resultVec): " << arrayMod(exVec2) << std::endl;
+    */
+
+    /*
     std::cout << delays.AFB << " " << ADC << " " << BDC << " " << AEB << " " << AEC << " " << BEC << std::endl;
     std::cout << jacob_iteration[0] << " " << jacob_iteration[1] << " " << jacob_iteration[2] << " " << jacob_iteration[3] << " " << jacob_iteration[4] << " " << jacob_iteration[5] << std::endl;
     */
